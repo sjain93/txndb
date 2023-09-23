@@ -7,11 +7,11 @@ import (
 )
 
 type UserHandler struct {
-	Service *UserService
+	uService UserServiceManager
 }
 
-func NewUserHandler(service *UserService) *UserHandler {
-	return &UserHandler{Service: service}
+func NewUserHandler(service UserServiceManager) *UserHandler {
+	return &UserHandler{uService: service}
 }
 
 func (h *UserHandler) Create(c echo.Context) error {
@@ -19,10 +19,9 @@ func (h *UserHandler) Create(c echo.Context) error {
 	if err := c.Bind(user); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
-	if err := h.Service.CreateUser(user); err != nil {
+	if err := h.uService.CreateUser(user); err != nil {
+		// (todo SJ) Add switch case on error for user collision scenario
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusCreated, user)
 }
-
-// Implement other handlers (Read, Update, Delete) here
