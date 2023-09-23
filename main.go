@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sjain93/userservice/api/user"
@@ -10,6 +12,11 @@ import (
 )
 
 func main() {
+	err := config.LoadEnvVars()
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+	
 	config.ConnectDatabase()
 	migrations.AutoMigrate(config.DB)
 
