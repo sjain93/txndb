@@ -10,7 +10,17 @@ import (
 
 const ENV_DEV = "dev"
 
-var DB *gorm.DB
+type MemoryStore map[string]interface{}
+
+var (
+	DB      *gorm.DB
+	InMemDB MemoryStore
+)
+
+func InitInMemoryStore() {
+	memStore := new(MemoryStore)
+	InMemDB = *memStore
+}
 
 func ConnectDatabase() {
 	dsn := buildDSN()
