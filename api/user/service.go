@@ -10,6 +10,7 @@ var (
 type UserServiceManager interface {
 	CreateUser(user *User) error
 }
+
 type userService struct {
 	userRepo UserRepoManager
 }

@@ -16,7 +16,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
-	
+
 	config.ConnectDatabase()
 	migrations.AutoMigrate(config.DB)
 

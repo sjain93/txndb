@@ -6,6 +6,7 @@ type UserRepoManager interface {
 	Create(user *User) error
 	GetAllUsers() ([]User, error)
 }
+
 type userRepository struct {
 	DB *gorm.DB
 }
