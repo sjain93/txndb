@@ -1,2 +1,3 @@
 # userservice
-Service to parse credit card transactions, store them and forward them to a third party
+## 🏗️ WIP!
+Proof of Concept service that demonstrates the Service-Repository pattern in Go, additional features to come 
