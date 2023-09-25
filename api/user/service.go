@@ -13,7 +13,7 @@ var (
 )
 
 // service errors
-var ErrSvcUserExists = errors.New("target user already exists")
+var ErrSvcUserExists = errors.New("target credential(s) already exist")
 
 type UserServiceManager interface {
 	CreateUser(user User) (User, error)

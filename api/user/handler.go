@@ -28,6 +28,7 @@ func (h *UserHandler) Create(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	if err != nil {
+		c.Logger().Errorf("failure to validate request parameters w/ error: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 

@@ -18,8 +18,8 @@ type CreateUserResponse struct {
 }
 type User struct {
 	ID        string `gorm:"primaryKey"`
-	Username  string
-	Email     string
+	Username  string `gorm:"unique"`
+	Email     string `gorm:"unique"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
