@@ -45,6 +45,7 @@ func NewUserRepository(db *gorm.DB, inMemStore config.MemoryStore) (UserRepoMana
 
 }
 
+// Creates a new user for either memory store and enforces model constraints
 func (r *userRepository) Create(user *User) error {
 	if r.DB != nil {
 		if err := r.DB.Create(user).Error; err != nil {
@@ -74,8 +75,8 @@ func (r *userRepository) Create(user *User) error {
 	return nil
 }
 
+// Returns a user for any field provided in the User struct
 func (r *userRepository) GetUser(user *User) (User, error) {
-
 	if r.DB != nil {
 		err := r.DB.First(user).Error
 		if err != nil {
@@ -119,6 +120,7 @@ func (r *userRepository) userForMemStoreValues(vals ...string) interface{} {
 	return r.memstore[foundID]
 }
 
+// Returns all users from chosen memory store
 func (r *userRepository) GetAllUsers() ([]User, error) {
 	var users []User
 	if r.DB != nil {
@@ -137,5 +139,3 @@ func (r *userRepository) GetAllUsers() ([]User, error) {
 
 	return users, nil
 }
-
-// Implement other CRUD operations (Read, Update, Delete) here

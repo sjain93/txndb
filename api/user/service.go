@@ -15,10 +15,12 @@ var (
 
 // service errors
 var ErrSvcUserExists = errors.New("target credential(s) already exist")
+var ErrSvcUserNotFound = errors.New("target was not found")
 
 type UserServiceManager interface {
 	CreateUser(user User) (User, error)
 	GetAllUsers() ([]User, error)
+	GetUser(id string) (User, error)
 }
 
 type userService struct {
@@ -35,15 +37,26 @@ func NewUserService(r UserRepoManager) UserServiceManager {
 }
 
 func (s *userService) CreateUser(user User) (User, error) {
-
 	user.ID = common.GetMD5HashWithSum(user.Username + user.Email)
+
 	err := s.userRepo.Create(&user)
-	if err != nil {
-		if errors.Is(err, ErrUniqueKeyViolated) {
-			return user, ErrSvcUserExists
-		} else {
-			return user, err
-		}
+	if err != nil && errors.Is(err, ErrUniqueKeyViolated) {
+		return user, ErrSvcUserExists
+	} else if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (s *userService) GetUser(id string) (User, error) {
+	u := User{ID: id}
+
+	user, err := s.userRepo.GetUser(&u)
+	if err != nil && errors.Is(err, ErrRecordNotFound) {
+		return user, ErrSvcUserNotFound
+	} else if err != nil {
+		return user, err
 	}
 	return user, nil
 }

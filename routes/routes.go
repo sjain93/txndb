@@ -14,5 +14,6 @@ func SetupAPIRoutes(e *echo.Echo, userService user.UserServiceManager) {
 	userHandler := user.NewUserHandler(userService)
 	users.POST("", userHandler.Create)
 	users.GET("", userHandler.GetAll)
+	users.GET("/:id", userHandler.GetUser)
 	// Implement other routes (GET, PUT, DELETE) here
 }

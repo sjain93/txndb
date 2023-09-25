@@ -49,6 +49,28 @@ func (h *UserHandler) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, uRes.mapToResponse())
 }
 
+func (h *UserHandler) GetUser(c echo.Context) error {
+	paramIDs := c.ParamValues()
+	if len(paramIDs) == 0 || len(paramIDs) > 1 {
+		c.Logger().Error("invalid number of ID parameters")
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid number of parameters")
+	}
+
+	uRes, err := h.uService.GetUser(paramIDs[0])
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrSvcUserNotFound):
+			return echo.NewHTTPError(http.StatusNotFound, errors.
+				Wrapf(err, "failed to find user with given ID").
+				Error())
+		default:
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+	}
+
+	return c.JSON(http.StatusFound, uRes.mapToResponse())
+}
+
 func (h *UserHandler) GetAll(c echo.Context) error {
 	users, err := h.uService.GetAllUsers()
 	if err != nil {

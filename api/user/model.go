@@ -16,6 +16,8 @@ type HTTPUserResponse struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
 }
+
+// Shared model for Service and Repository layer
 type User struct {
 	ID        string `gorm:"primaryKey"`
 	Username  string `gorm:"unique"`
