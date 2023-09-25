@@ -61,6 +61,7 @@ func (r *userRepository) Create(user *User) error {
 		if ok {
 			return ErrUniqueKeyViolated
 		}
+		// ensuring unique constraint for email and username when using in mem
 		u := r.userForMemStoreValues(user.Username, user.Email)
 		if u != nil {
 			return ErrUniqueKeyViolated
@@ -76,7 +77,7 @@ func (r *userRepository) Create(user *User) error {
 func (r *userRepository) GetUser(user *User) (User, error) {
 
 	if r.DB != nil {
-		err := r.DB.First(&user).Error
+		err := r.DB.First(user).Error
 		if err != nil {
 			switch {
 			case errors.Is(err, gorm.ErrRecordNotFound):
