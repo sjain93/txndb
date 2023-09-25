@@ -7,11 +7,16 @@ import (
 	"gorm.io/gorm"
 )
 
-var ErrNoDatastore = errors.New("no datastore provided")
+var (
+	ErrNoDatastore     = errors.New("no datastore provided")
+	ErrRecordNotFound  = errors.New("record not found")
+	ErrInvalidDataType = errors.New("invalid user data type")
+)
 
 type UserRepoManager interface {
 	Create(user *User) error
 	GetAllUsers() ([]User, error)
+	GetByID(id string) (User, error)
 }
 
 type userRepository struct {
@@ -46,6 +51,32 @@ func (r *userRepository) Create(user *User) error {
 	return nil
 }
 
+func (r *userRepository) GetByID(id string) (User, error) {
+	var user User
+
+	if r.DB != nil {
+		err := r.DB.First(&user).Error
+		if err != nil {
+			switch {
+			case errors.Is(err, gorm.ErrRecordNotFound):
+				return user, ErrRecordNotFound
+			default:
+				return user, err
+			}
+		}
+	} else {
+		val, ok := r.memstore[id]
+		if !ok {
+			return user, ErrRecordNotFound
+		}
+		user, ok = val.(User)
+		if !ok {
+			return user, ErrInvalidDataType
+		}
+	}
+	return user, nil
+}
+
 func (r *userRepository) GetAllUsers() ([]User, error) {
 	var users []User
 	if r.DB != nil {
@@ -56,7 +87,7 @@ func (r *userRepository) GetAllUsers() ([]User, error) {
 		for _, u := range r.memstore {
 			user, ok := u.(User)
 			if !ok {
-				return users, errors.New("invalid user data type")
+				return users, ErrInvalidDataType
 			}
 			users = append(users, user)
 		}

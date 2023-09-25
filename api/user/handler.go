@@ -1,8 +1,10 @@
 package user
 
 import (
+	"errors"
 	"net/http"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/labstack/echo/v4"
 )
 
@@ -15,13 +17,28 @@ func NewUserHandler(service UserServiceManager) *UserHandler {
 }
 
 func (h *UserHandler) Create(c echo.Context) error {
-	user := new(User)
-	if err := c.Bind(user); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+	userReq := new(CreateUserRequest)
+	if err := c.Bind(userReq); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	if err := h.uService.CreateUser(user); err != nil {
-		// (todo SJ) Add switch case on error for user collision scenario
-		return c.JSON(http.StatusInternalServerError, err)
+
+	valid, err := govalidator.ValidateStruct(userReq)
+	if !valid {
+		c.Logger().Errorf("invalid request parameters w/ error: %v", err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	return c.JSON(http.StatusCreated, user)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	uRes, err := h.uService.CreateUser(userReq.mapToUser())
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrSvcUserExists):
+			return echo.NewHTTPError(http.StatusConflict, err)
+		default:
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+	}
+	return c.JSON(http.StatusCreated, uRes.mapToResponse())
 }

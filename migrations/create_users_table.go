@@ -1,6 +1,8 @@
 package migrations
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -13,7 +15,10 @@ func AutoMigrate(db *gorm.DB) {
 }
 
 type User struct {
-	gorm.Model
-	Username string
-	Email    string
+	ID        string `gorm:"primaryKey"`
+	Username  string
+	Email     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }

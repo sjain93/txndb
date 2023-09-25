@@ -46,8 +46,11 @@ func main() {
 	userService := user.NewUserService(userRepository)
 
 	e := echo.New()
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	e.Use(
+		middleware.Logger(),
+		middleware.Recover(),
+		middleware.RequestID(),
+	)
 
 	routes.SetupRoutes(e, userService)
 
