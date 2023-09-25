@@ -1,8 +1,9 @@
 package user
 
 import (
-	"errors"
 	"sync"
+
+	"github.com/pkg/errors"
 
 	"github.com/sjain93/userservice/api/common"
 )
@@ -17,6 +18,7 @@ var ErrSvcUserExists = errors.New("target credential(s) already exist")
 
 type UserServiceManager interface {
 	CreateUser(user User) (User, error)
+	GetAllUsers() ([]User, error)
 }
 
 type userService struct {
@@ -44,6 +46,10 @@ func (s *userService) CreateUser(user User) (User, error) {
 		}
 	}
 	return user, nil
+}
+
+func (s *userService) GetAllUsers() ([]User, error) {
+	return s.userRepo.GetAllUsers()
 }
 
 // Implement other service methods (Read, Update, Delete) here

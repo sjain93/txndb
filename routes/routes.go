@@ -13,5 +13,6 @@ func SetupAPIRoutes(e *echo.Echo, userService user.UserServiceManager) {
 	// Service Handlers
 	userHandler := user.NewUserHandler(userService)
 	users.POST("", userHandler.Create)
+	users.GET("", userHandler.GetAll)
 	// Implement other routes (GET, PUT, DELETE) here
 }
