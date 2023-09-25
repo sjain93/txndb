@@ -6,11 +6,12 @@ import (
 )
 
 func SetupRoutes(e *echo.Echo, userService user.UserServiceManager) {
-	userHandler := user.NewUserHandler(userService)
-
+	// API Groups
 	api := e.Group("/api")
 	users := api.Group("/users")
 
+	// Service Handlers
+	userHandler := user.NewUserHandler(userService)
 	users.POST("", userHandler.Create)
 	// Implement other routes (GET, PUT, DELETE) here
 }
