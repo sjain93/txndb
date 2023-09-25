@@ -68,10 +68,14 @@ func main() {
 	shutdownCtx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	e.POST("/quit", func(c echo.Context) error {
-		cancel()
-		return c.String(http.StatusOK, "OK")
-	})
+	/*
+		An optional route can be added to trigger a graceful shutdown over HTTP:
+
+		e.POST("/quit", func(c echo.Context) error {
+			cancel()
+			return c.String(http.StatusOK, "OK")
+		})
+	*/
 
 	go func() {
 		if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
@@ -79,7 +83,7 @@ func main() {
 		}
 	}()
 
-	<-shutdownCtx.Done() // block here until ctrl+c or POST /quit
+	<-shutdownCtx.Done() // block here until ctrl+c
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
