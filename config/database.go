@@ -10,14 +10,10 @@ import (
 
 type MemoryStore map[string]interface{}
 
-var (
-	DB      *gorm.DB
-	InMemDB MemoryStore
-)
+var DB *gorm.DB
 
-func InitInMemoryStore() {
-	memStore := new(MemoryStore)
-	InMemDB = *memStore
+func GetInMemoryStore() MemoryStore {
+	return MemoryStore{}
 }
 
 func ConnectDatabase() {

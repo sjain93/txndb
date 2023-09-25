@@ -25,10 +25,11 @@ func main() {
 	)
 
 	noDB := flag.Bool("noDB", false, "Bool if the server should init in memory store")
+	flag.Parse()
 
 	if *noDB {
-		config.InitInMemoryStore()
-		userRepository, err = user.NewUserRepository(nil, config.InMemDB)
+		inMemDB := config.GetInMemoryStore()
+		userRepository, err = user.NewUserRepository(nil, inMemDB)
 		if err != nil {
 			log.Fatalf("Error initializing in memory datastore: %v", err.Error())
 		}
