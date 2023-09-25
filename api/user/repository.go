@@ -1,7 +1,7 @@
 package user
 
 import (
-	"errors"
+	"github.com/pkg/errors"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/sjain93/userservice/config"
