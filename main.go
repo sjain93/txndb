@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -52,7 +57,33 @@ func main() {
 		middleware.RequestID(),
 	)
 
-	routes.SetupRoutes(e, userService)
+	routes.SetupAPIRoutes(e, userService)
 
-	e.Start(":8080")
+	/*
+		The code below implements a graceful shutdown by starting the server
+		via  a goroutine that blocks until a kill command is posted
+	*/
+
+	shutdownCtx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
+	e.POST("/quit", func(c echo.Context) error {
+		cancel()
+		return c.String(http.StatusOK, "OK")
+	})
+
+	go func() {
+		if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
+			e.Logger.Fatal("shutting down the server")
+		}
+	}()
+
+	<-shutdownCtx.Done() // block here until ctrl+c or POST /quit
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		e.Logger.Fatal(err)
+	}
+
 }

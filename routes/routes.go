@@ -5,7 +5,7 @@ import (
 	"github.com/sjain93/userservice/api/user"
 )
 
-func SetupRoutes(e *echo.Echo, userService user.UserServiceManager) {
+func SetupAPIRoutes(e *echo.Echo, userService user.UserServiceManager) {
 	// API Groups
 	api := e.Group("/api")
 	users := api.Group("/users")
