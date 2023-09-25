@@ -6,12 +6,12 @@ import (
 	"gorm.io/gorm"
 )
 
-type CreateUserRequest struct {
+type HTTPUserRequest struct {
 	Username string `json:"username" valid:"required"`
 	Email    string `json:"email" valid:"email,required"`
 }
 
-type CreateUserResponse struct {
+type HTTPUserResponse struct {
 	ID       string `json:"id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
@@ -25,15 +25,15 @@ type User struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-func (u *User) mapToResponse() CreateUserResponse {
-	return CreateUserResponse{
+func (u *User) mapToResponse() HTTPUserResponse {
+	return HTTPUserResponse{
 		ID:       u.ID,
 		Username: u.Username,
 		Email:    u.Email,
 	}
 }
 
-func (uR *CreateUserRequest) mapToUser() User {
+func (uR *HTTPUserRequest) mapToUser() User {
 	return User{
 		Username: uR.Username,
 		Email:    uR.Email,

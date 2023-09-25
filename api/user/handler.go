@@ -17,7 +17,7 @@ func NewUserHandler(service UserServiceManager) *UserHandler {
 }
 
 func (h *UserHandler) Create(c echo.Context) error {
-	userReq := new(CreateUserRequest)
+	userReq := new(HTTPUserRequest)
 	if err := c.Bind(userReq); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
@@ -36,7 +36,7 @@ func (h *UserHandler) Create(c echo.Context) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrSvcUserExists):
-			return echo.NewHTTPError(http.StatusConflict, err)
+			return echo.NewHTTPError(http.StatusConflict)
 		default:
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
