@@ -22,7 +22,7 @@ const (
 type UserRepoManager interface {
 	Create(user *User) error
 	GetAllUsers() ([]User, error)
-	GetByID(id string) (User, error)
+	GetUser(user *User) (User, error)
 }
 
 type userRepository struct {
@@ -61,37 +61,61 @@ func (r *userRepository) Create(user *User) error {
 		if ok {
 			return ErrUniqueKeyViolated
 		}
+		u := r.userForMemStoreValues(user.Username, user.Email)
+		if u != nil {
+			return ErrUniqueKeyViolated
+		}
+
+		// save user when all unique constraints are met
 		r.memstore[user.ID] = *user
 	}
 
 	return nil
 }
 
-func (r *userRepository) GetByID(id string) (User, error) {
-	var user User
+func (r *userRepository) GetUser(user *User) (User, error) {
 
 	if r.DB != nil {
-		user.ID = id
 		err := r.DB.First(&user).Error
 		if err != nil {
 			switch {
 			case errors.Is(err, gorm.ErrRecordNotFound):
-				return user, ErrRecordNotFound
+				return *user, ErrRecordNotFound
 			default:
-				return user, err
+				return *user, err
 			}
 		}
 	} else {
-		val, ok := r.memstore[id]
+		val, ok := r.memstore[user.ID]
 		if !ok {
-			return user, ErrRecordNotFound
+			u := r.userForMemStoreValues(user.Username, user.Email)
+			if u == nil {
+				return *user, ErrRecordNotFound
+			}
+			val = u
 		}
-		user, ok = val.(User)
+		u, ok := val.(User)
 		if !ok {
-			return user, ErrInvalidDataType
+			return *user, ErrInvalidDataType
+		}
+		user = &u
+	}
+	return *user, nil
+}
+
+// In order to emulate the PQ constraint in the memory store
+func (r *userRepository) userForMemStoreValues(vals ...string) interface{} {
+	var foundID string
+	for _, v := range vals {
+		for id, storedUser := range r.memstore {
+			sU := storedUser.(User)
+			if sU.Email == v || sU.Username == v {
+				foundID = id
+				break
+			}
 		}
 	}
-	return user, nil
+	return r.memstore[foundID]
 }
 
 func (r *userRepository) GetAllUsers() ([]User, error) {
