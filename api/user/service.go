@@ -33,15 +33,17 @@ func NewUserService(r UserRepoManager) UserServiceManager {
 }
 
 func (s *userService) CreateUser(user User) (User, error) {
-	userID := common.GetMD5HashWithSum(user.Username + user.Email)
-	// check if user exists
-	_, err := s.userRepo.GetByID(userID)
-	if errors.Is(err, ErrRecordNotFound) {
-		user.ID = userID
-		return user, s.userRepo.Create(&user)
-	}
 
-	return user, ErrSvcUserExists
+	user.ID = common.GetMD5HashWithSum(user.Username + user.Email)
+	err := s.userRepo.Create(&user)
+	if err != nil {
+		if errors.Is(err, ErrUniqueKeyViolated) {
+			return user, ErrSvcUserExists
+		} else {
+			return user, err
+		}
+	}
+	return user, nil
 }
 
 // Implement other service methods (Read, Update, Delete) here

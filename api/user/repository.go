@@ -3,14 +3,20 @@ package user
 import (
 	"errors"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/sjain93/userservice/config"
 	"gorm.io/gorm"
 )
 
 var (
-	ErrNoDatastore     = errors.New("no datastore provided")
-	ErrRecordNotFound  = errors.New("record not found")
-	ErrInvalidDataType = errors.New("invalid user data type")
+	ErrNoDatastore       = errors.New("no datastore provided")
+	ErrRecordNotFound    = errors.New("record not found")
+	ErrInvalidDataType   = errors.New("invalid user data type")
+	ErrUniqueKeyViolated = errors.New("duplicated key not allowed")
+)
+
+const (
+	UniqueViolationErr = "23505"
 )
 
 type UserRepoManager interface {
@@ -42,9 +48,19 @@ func NewUserRepository(db *gorm.DB, inMemStore config.MemoryStore) (UserRepoMana
 func (r *userRepository) Create(user *User) error {
 	if r.DB != nil {
 		if err := r.DB.Create(user).Error; err != nil {
-			return err
+			// this is a GORM implementation detail
+			var perr *pgconn.PgError
+			if ok := errors.As(err, &perr); ok && perr.Code == UniqueViolationErr {
+				return ErrUniqueKeyViolated
+			} else {
+				return err
+			}
 		}
 	} else {
+		_, ok := r.memstore[user.ID]
+		if ok {
+			return ErrUniqueKeyViolated
+		}
 		r.memstore[user.ID] = *user
 	}
 
@@ -55,6 +71,7 @@ func (r *userRepository) GetByID(id string) (User, error) {
 	var user User
 
 	if r.DB != nil {
+		user.ID = id
 		err := r.DB.First(&user).Error
 		if err != nil {
 			switch {
