@@ -9,6 +9,15 @@ This repository demonstrates the implementation of the Service Repository Layer 
   >This modularity is enforced via Go's implementation of interfaces, and can be found as a salient feature in both the repository and service layers.
 - Testability: Each layer can be unit-tested in isolation, leading to more reliable code.
 - Reusability: Services and repositories can be reused in different parts of the application.
+  
+> Check out `main.go` for an implementation of `Echo`'s graceful shutdown feature!
+
+Key dependencies used in this project include:
+- [Echo v4](github.com/labstack/echo/v4 ) for routing and server middleware, its a great library that also supports
+features like authorization and context logging
+- [govalidator](github.com/asaskevich/govalidator) for HTTP request validation
+- [GORM](gorm.io/gorm) for Postgres ORM
+- [testify](github.com/stretchr/testify) for robust testing assertions
 
 ## Repository Structure
 
@@ -88,7 +97,7 @@ here are some cURL equivalents of HTTP calls that can be made:
 
 ### `POST` to `/api/users`
 ```cURL
-curl --location 'http://localhost:8080/api/users' \
+curl -X POST --location 'http://localhost:8080/api/users' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "username": "Test User",
@@ -148,15 +157,6 @@ go test ./...
 ```
 ---
 ⚙️ More tests to come!
-## Notes
-Check out `main.go` for an implementation of `Echo`'s graceful shutdown feature!
-
-Key dependencies used in this project include:
-- [Echo v4](github.com/labstack/echo/v4 ) for routing and server middleware, its a great library that also supports
-  features like authorization and context logging
-- [govalidator](github.com/asaskevich/govalidator) for HTTP request validation
-- [GORM](gorm.io/gorm) for Postgres ORM
-- [testify](github.com/stretchr/testify) for robust testing assertions
 
 ## Contributing
 
