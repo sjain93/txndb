@@ -27,7 +27,6 @@ This repository demonstrates the implementation of the Service Repository Layer 
 
 >📝 More subdomains will be added as the project expands. 
 
->🏗️ Testing coverage is also WIP
 ## Getting Started
 
 #### Please note that this project was designed to be run with a Postgres database however, you may also init the project with an in-memory store to test it out.
@@ -147,7 +146,8 @@ To run unit tests for services and repositories, use the following command:
 ```
 go test ./...
 ```
-
+---
+⚙️ More tests to come!
 ## Notes
 Check out `main.go` for an implementation of `Echo`'s graceful shutdown feature!
 
