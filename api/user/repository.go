@@ -2,20 +2,10 @@ package user
 
 import (
 	"github.com/pkg/errors"
+	"github.com/sjain93/userservice/api/common"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
-)
-
-var (
-	ErrNoDatastore       = errors.New("no datastore provided")
-	ErrRecordNotFound    = errors.New("record not found")
-	ErrInvalidDataType   = errors.New("invalid user data type")
-	ErrUniqueKeyViolated = errors.New("duplicated key not allowed")
-)
-
-const (
-	UniqueViolationErr = "23505"
 )
 
 type UserRepoManager interface {
@@ -36,7 +26,7 @@ func NewUserRepository(db *gorm.DB) (UserRepoManager, error) {
 		}, nil
 	}
 
-	return &userRepository{}, ErrNoDatastore
+	return &userRepository{}, common.ErrNoDatastore
 }
 
 // Creates a new user for either memory store and enforces model constraints
@@ -45,8 +35,8 @@ func (r *userRepository) Create(user *User) error {
 		if err := r.DB.Create(user).Error; err != nil {
 			// this is a GORM implementation detail
 			var perr *pgconn.PgError
-			if ok := errors.As(err, &perr); ok && perr.Code == UniqueViolationErr {
-				return ErrUniqueKeyViolated
+			if ok := errors.As(err, &perr); ok && perr.Code == common.UniqueViolationErr {
+				return common.ErrUniqueKeyViolated
 			} else {
 				return err
 			}
@@ -63,7 +53,7 @@ func (r *userRepository) GetUser(user *User) (User, error) {
 		if err != nil {
 			switch {
 			case errors.Is(err, gorm.ErrRecordNotFound):
-				return *user, ErrRecordNotFound
+				return *user, common.ErrRecordNotFound
 			default:
 				return *user, err
 			}

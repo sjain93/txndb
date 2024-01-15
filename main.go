@@ -10,6 +10,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/sjain93/userservice/api/txns"
 	"github.com/sjain93/userservice/api/user"
 	"github.com/sjain93/userservice/config"
 	"github.com/sjain93/userservice/migrations"
@@ -19,6 +20,7 @@ import (
 func main() {
 	var (
 		userRepository user.UserRepoManager
+		txnRepository  txns.TxnRepoManager
 		err            error
 	)
 
@@ -32,10 +34,20 @@ func main() {
 
 	userRepository, err = user.NewUserRepository(config.DB)
 	if err != nil {
-		log.Fatalf("Error initializing postgres datastore: %v", err.Error())
+		log.Fatalf("Error initializing user repo: %v", err.Error())
 	}
 
 	userService := user.NewUserService(userRepository)
+
+	txnRepository, err = txns.NewTxnRepository(config.DB)
+	if err != nil {
+		log.Fatalf("Error initializing txn repo: %v", err.Error())
+	}
+
+	txnService := txns.NewTxnService(txnRepository)
+	if err := txnService.SeedLocalTransactions(); err != nil {
+		log.Fatalf("Error seeding txn repo: %v", err.Error())
+	}
 
 	e := echo.New()
 	e.Use(

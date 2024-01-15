@@ -12,6 +12,7 @@ For larger more production serving APIs, versioned migrations are recommended.
 */
 func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&User{})
+	db.AutoMigrate(&Transaction{})
 }
 
 type User struct {
@@ -22,4 +23,16 @@ type User struct {
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	DeletedAt     gorm.DeletedAt `gorm:"index"`
+}
+
+type Transaction struct {
+	ID                 string `gorm:"primaryKey"`
+	AccountNumber      string
+	Date               time.Time
+	TransactionDetails string
+	ValueDate          time.Time
+	WithdrawalAmt      *int
+	DepositAmt         *int
+	BalanceAmt         int
+	CreatedAt          time.Time
 }
