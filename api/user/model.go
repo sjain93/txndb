@@ -2,13 +2,12 @@ package user
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type HTTPUserRequest struct {
-	Username string `json:"username" valid:"required"`
-	Email    string `json:"email" valid:"email,required"`
+	Username      string `json:"username" valid:"required"`
+	AccountNumber string `json:"account_number" valid:"required"`
+	Email         string `json:"email" valid:"email,required"`
 }
 
 type HTTPUserResponse struct {
@@ -19,12 +18,12 @@ type HTTPUserResponse struct {
 
 // Shared model for Service and Repository layer
 type User struct {
-	ID        string `gorm:"primaryKey"`
-	Username  string `gorm:"unique"`
-	Email     string `gorm:"unique"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	ID            string `gorm:"primaryKey"`
+	Username      string `gorm:"unique"`
+	Email         string `gorm:"unique"`
+	AccountNumber string `gorm:"unique"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 func (u *User) mapToResponse() HTTPUserResponse {
@@ -37,7 +36,8 @@ func (u *User) mapToResponse() HTTPUserResponse {
 
 func (uR *HTTPUserRequest) mapToUser() User {
 	return User{
-		Username: uR.Username,
-		Email:    uR.Email,
+		Username:      uR.Username,
+		AccountNumber: uR.AccountNumber,
+		Email:         uR.Email,
 	}
 }

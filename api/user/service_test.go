@@ -2,6 +2,8 @@ package user_test
 
 import (
 	"fmt"
+	"math/rand"
+	"strconv"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -38,6 +40,8 @@ func TestCreateUser(t *testing.T) {
 
 	uS := user.NewUserService(uR)
 
+	cleanup := []user.User{}
+
 	// Setup existing users
 	existingUsers := getTestUsers(2)
 	for _, u := range existingUsers {
@@ -45,6 +49,7 @@ func TestCreateUser(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		cleanup = append(cleanup, u)
 	}
 
 	testcases := map[string]struct {
@@ -53,31 +58,51 @@ func TestCreateUser(t *testing.T) {
 	}{
 		"Happy Path - Success": {
 			user: user.User{
-				Username: "Test Case 1",
-				Email:    "testcase1@gmail.com",
+				Username:      "Test Case 1",
+				AccountNumber: "1234567",
+				Email:         "testcase1@gmail.com",
 			},
 			expectedError: nil,
 		},
 		"Email in use - failure": {
 			user: user.User{
-				Username: "Test Case 2",
-				Email:    "existinguser1@gmail.com",
+				Username:      "Test Case 2",
+				AccountNumber: "1234568",
+				Email:         "existinguser1@gmail.com",
 			},
 			expectedError: user.ErrSvcUserExists,
 		},
 		"Username in use - failure": {
 			user: user.User{
-				Username: "Existing User 2",
-				Email:    "testcase3@gmail.com",
+				Username:      "Existing User 2",
+				AccountNumber: "1234569",
+				Email:         "testcase3@gmail.com",
+			},
+			expectedError: user.ErrSvcUserExists,
+		},
+		"Account number exists": {
+			user: user.User{
+				Username:      "Existing Account Number",
+				AccountNumber: existingUsers[0].AccountNumber,
+				Email:         "testcase4@gmail.com",
 			},
 			expectedError: user.ErrSvcUserExists,
 		},
 	}
 	for name, tc := range testcases {
 		t.Run(name, func(t *testing.T) {
-			_, err := uS.CreateUser(tc.user)
+			user, err := uS.CreateUser(tc.user)
 			assert.Equal(t, tc.expectedError, err)
+			if tc.expectedError == nil {
+				cleanup = append(cleanup, user)
+			}
 		})
+	}
+
+	for _, u := range cleanup {
+		if err := uR.DeleteUser(&u); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -88,12 +113,18 @@ func getTestUsers(num int) []user.User {
 		uName := fmt.Sprintf("Existing User %v", i)
 		email := fmt.Sprintf("existinguser%v@gmail.com", i)
 		u := user.User{
-			ID:       common.GetMD5HashWithSum(uName + email),
-			Username: uName,
-			Email:    email,
+			ID:            common.GetMD5HashWithSum(uName + email),
+			Username:      uName,
+			Email:         email,
+			AccountNumber: rangeIn(1000, 9999),
 		}
 		generatedUsers = append(generatedUsers, u)
 	}
 
 	return generatedUsers
+}
+
+func rangeIn(low, hi int) string {
+	num := low + rand.Intn(hi-low)
+	return strconv.Itoa(num)
 }

@@ -22,6 +22,7 @@ type UserRepoManager interface {
 	Create(user *User) error
 	GetAllUsers() ([]User, error)
 	GetUser(user *User) (User, error)
+	DeleteUser(user *User) error
 }
 
 type userRepository struct {
@@ -81,4 +82,15 @@ func (r *userRepository) GetAllUsers() ([]User, error) {
 	}
 
 	return users, nil
+}
+
+func (r *userRepository) DeleteUser(user *User) error {
+	if r.DB != nil {
+		err := r.DB.Delete(&user).Error
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
 }
