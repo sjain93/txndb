@@ -4,7 +4,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/sjain93/userservice/config"
 	"gorm.io/gorm"
 )
 
@@ -26,23 +25,17 @@ type UserRepoManager interface {
 }
 
 type userRepository struct {
-	DB       *gorm.DB
-	memstore config.MemoryStore
+	DB *gorm.DB
 }
 
-func NewUserRepository(db *gorm.DB, inMemStore config.MemoryStore) (UserRepoManager, error) {
+func NewUserRepository(db *gorm.DB) (UserRepoManager, error) {
 	if db != nil {
 		return &userRepository{
 			DB: db,
 		}, nil
-	} else if inMemStore != nil {
-		return &userRepository{
-			memstore: inMemStore,
-		}, nil
 	}
 
 	return &userRepository{}, ErrNoDatastore
-
 }
 
 // Creates a new user for either memory store and enforces model constraints
@@ -57,19 +50,6 @@ func (r *userRepository) Create(user *User) error {
 				return err
 			}
 		}
-	} else {
-		_, ok := r.memstore[user.ID]
-		if ok {
-			return ErrUniqueKeyViolated
-		}
-		// ensuring unique constraint for email and username when using in mem
-		u := r.userForMemStoreValues(user.Username, user.Email)
-		if u != nil {
-			return ErrUniqueKeyViolated
-		}
-
-		// save user when all unique constraints are met
-		r.memstore[user.ID] = *user
 	}
 
 	return nil
@@ -87,37 +67,8 @@ func (r *userRepository) GetUser(user *User) (User, error) {
 				return *user, err
 			}
 		}
-	} else {
-		val, ok := r.memstore[user.ID]
-		if !ok {
-			u := r.userForMemStoreValues(user.Username, user.Email)
-			if u == nil {
-				return *user, ErrRecordNotFound
-			}
-			val = u
-		}
-		u, ok := val.(User)
-		if !ok {
-			return *user, ErrInvalidDataType
-		}
-		user = &u
 	}
 	return *user, nil
-}
-
-// In order to emulate the PQ constraint in the memory store
-func (r *userRepository) userForMemStoreValues(vals ...string) interface{} {
-	var foundID string
-	for _, v := range vals {
-		for id, storedUser := range r.memstore {
-			sU := storedUser.(User)
-			if sU.Email == v || sU.Username == v {
-				foundID = id
-				break
-			}
-		}
-	}
-	return r.memstore[foundID]
 }
 
 // Returns all users from chosen memory store
@@ -126,14 +77,6 @@ func (r *userRepository) GetAllUsers() ([]User, error) {
 	if r.DB != nil {
 		if err := r.DB.Find(&users).Error; err != nil {
 			return users, err
-		}
-	} else {
-		for _, u := range r.memstore {
-			user, ok := u.(User)
-			if !ok {
-				return users, ErrInvalidDataType
-			}
-			users = append(users, user)
 		}
 	}
 

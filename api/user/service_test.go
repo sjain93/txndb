@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/joho/godotenv"
 	"github.com/sjain93/userservice/api/common"
 	"github.com/sjain93/userservice/api/user"
 	"github.com/sjain93/userservice/config"
+	"github.com/sjain93/userservice/migrations"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,15 +23,22 @@ import (
 */
 
 func TestCreateUser(t *testing.T) {
-	memStore := config.GetInMemoryStore()
-	uR, err := user.NewUserRepository(nil, memStore)
+	err := godotenv.Load("../../.env")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.ConnectDatabase()
+	migrations.AutoMigrate(config.DB)
+
+	uR, err := user.NewUserRepository(config.DB)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	uS := user.NewUserService(uR)
 
-	//Setup existing users
+	// Setup existing users
 	existingUsers := getTestUsers(2)
 	for _, u := range existingUsers {
 		err := uR.Create(&u)

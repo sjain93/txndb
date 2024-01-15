@@ -8,13 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type MemoryStore map[string]interface{}
-
 var DB *gorm.DB
-
-func GetInMemoryStore() MemoryStore {
-	return MemoryStore{}
-}
 
 func ConnectDatabase() {
 	dsn := buildDSN()

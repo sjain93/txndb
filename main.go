@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -18,35 +17,22 @@ import (
 )
 
 func main() {
-
 	var (
 		userRepository user.UserRepoManager
 		err            error
 	)
 
-	noDB := flag.Bool("noDB", false, "Bool if the server should init in memory store")
-	flag.Parse()
+	err = config.LoadEnvVars()
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
 
-	if *noDB {
-		inMemDB := config.GetInMemoryStore()
-		userRepository, err = user.NewUserRepository(nil, inMemDB)
-		if err != nil {
-			log.Fatalf("Error initializing in memory datastore: %v", err.Error())
-		}
+	config.ConnectDatabase()
+	migrations.AutoMigrate(config.DB)
 
-	} else {
-		err = config.LoadEnvVars()
-		if err != nil {
-			log.Fatalf("Error loading .env file")
-		}
-
-		config.ConnectDatabase()
-		migrations.AutoMigrate(config.DB)
-
-		userRepository, err = user.NewUserRepository(config.DB, nil)
-		if err != nil {
-			log.Fatalf("Error initializing postgres datastore: %v", err.Error())
-		}
+	userRepository, err = user.NewUserRepository(config.DB)
+	if err != nil {
+		log.Fatalf("Error initializing postgres datastore: %v", err.Error())
 	}
 
 	userService := user.NewUserService(userRepository)
@@ -81,7 +67,6 @@ func main() {
 	if err := e.Shutdown(ctx); err != nil {
 		e.Logger.Fatal(err)
 	}
-
 }
 
 /*
